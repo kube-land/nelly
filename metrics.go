@@ -12,6 +12,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+// https://github.com/kubernetes/kubernetes/blob/master/staging/src/k8s.io/component-base/metrics/prometheus/version/metrics.go
+
 var (
 	requestCounter = prometheus.NewCounterVec(
 		prometheus.CounterOpts{

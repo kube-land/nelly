@@ -35,9 +35,9 @@ type JSONWebKeys struct {
 	X5c []string `json:"x5c"`
 }
 
-func getPemCert(token *jwt.Token, certURL string) (string, error) {
+func getPemCert(token *jwt.Token, jwksURL string) (string, error) {
 	cert := ""
-	resp, err := http.Get(certURL)
+	resp, err := http.Get(jwksURL)
 
 	if err != nil {
 		return cert, err
@@ -66,10 +66,22 @@ func getPemCert(token *jwt.Token, certURL string) (string, error) {
 }
 
 // WithAuthSigningMethodHS256 handler authinticates requests with HS256 algorithm
-func WithAuthSigningMethodHS256(secret string) Handler {
+func WithAuthSigningMethodHS256(secret string, audience string, issuer string) Handler {
 
 	jwtMiddleware := jwtmiddleware.New(jwtmiddleware.Options{
 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
+
+			// Verify 'aud' claim
+			checkAud := token.Claims.(jwt.MapClaims).VerifyAudience(audience, false)
+			if !checkAud {
+				return token, errors.New("Invalid audience")
+			}
+			// Verify 'iss' claim
+			checkIss := token.Claims.(jwt.MapClaims).VerifyIssuer(issuer, false)
+			if !checkIss {
+				return token, errors.New("Invalid issuer")
+			}
+
 			return []byte(secret), nil
 		},
 		// When set, the middleware verifies that tokens are signed with the specific signing algorithm
@@ -83,27 +95,23 @@ func WithAuthSigningMethodHS256(secret string) Handler {
 }
 
 // WithAuthSigningMethodRS256 handler authinticates requests with RS256 algorithm
-func WithAuthSigningMethodRS256(certURL string) Handler {
+func WithAuthSigningMethodRS256(jwksURL string, audience string, issuer string) Handler {
 
 	jwtMiddleware := jwtmiddleware.New(jwtmiddleware.Options{
 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
 
-			/*
-				// Verify 'aud' claim
-				aud := os.Getenv("AUTH0_AUDIENCE")
-				checkAud := token.Claims.(jwt.MapClaims).VerifyAudience(aud, false)
-				if !checkAud {
-					return token, errors.New("Invalid audience.")
-				}
-				// Verify 'iss' claim
-				iss := "https://" + os.Getenv("AUTH0_DOMAIN") + "/"
-				checkIss := token.Claims.(jwt.MapClaims).VerifyIssuer(iss, false)
-				if !checkIss {
-					return token, errors.New("Invalid issuer.")
-				}
-			*/
+			// Verify 'aud' claim
+			checkAud := token.Claims.(jwt.MapClaims).VerifyAudience(audience, false)
+			if !checkAud {
+				return token, errors.New("Invalid audience")
+			}
+			// Verify 'iss' claim
+			checkIss := token.Claims.(jwt.MapClaims).VerifyIssuer(issuer, false)
+			if !checkIss {
+				return token, errors.New("Invalid issuer")
+			}
 
-			cert, err := getPemCert(token, certURL)
+			cert, err := getPemCert(token, jwksURL)
 			if err != nil {
 				return nil, err
 			}
