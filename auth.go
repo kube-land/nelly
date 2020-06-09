@@ -92,7 +92,7 @@ func WithAuthSigningMethodHS256(secret string, audience string, issuer string) H
 }
 
 // WithAuthSigningMethodRS256 handler authinticates requests with RS256 algorithm
-func WithAuthSigningMethodRS256(jwksURL string, audience string, issuer string) Handler {
+func WithAuthSigningMethodRS256(jwksEndpoint string, audience string, issuer string) Handler {
 
 	jwtMiddleware := jwtmiddleware.New(jwtmiddleware.Options{
 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
@@ -108,7 +108,7 @@ func WithAuthSigningMethodRS256(jwksURL string, audience string, issuer string) 
 				return token, errors.New("Invalid issuer")
 			}
 
-			cert, err := getPemCert(token, jwksURL)
+			cert, err := getPemCert(token, jwksEndpoint)
 			if err != nil {
 				return nil, err
 			}
