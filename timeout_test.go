@@ -12,8 +12,6 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/runtime"
 
-	"github.com/pharmatics/rest-utils"
-
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -59,14 +57,14 @@ func TestTimeout(t *testing.T) {
 	gotPanic := make(chan interface{}, 1)
 	timeout := make(chan time.Time, 1)
 	resp := "test response"
-	timeoutErr := restutils.NewTimeoutError("request did not complete", 0)
+	timeoutErr := newTimeoutError("request did not complete", 0)
 	record := &recorder{}
 
 	handler := newHandler(sendResponse, doPanic, writeErrors)
 
 	router := httprouter.New()
 	router.GET("/", withPanicRecovery(
-		withTimeout(handler, func(req *http.Request) (*http.Request, <-chan time.Time, func(), *restutils.Status) {
+		withTimeout(handler, func(req *http.Request) (*http.Request, <-chan time.Time, func(), *Status) {
 			return req, timeout, record.Record, timeoutErr
 		}), func(w http.ResponseWriter, req *http.Request, err interface{}) {
 			gotPanic <- err

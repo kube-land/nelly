@@ -2,7 +2,6 @@ package nelly
 
 import (
 	"github.com/julienschmidt/httprouter"
-	"github.com/pharmatics/rest-utils"
 	"net/http"
 )
 
@@ -23,8 +22,8 @@ func WithRequiredHeaders(requiredHeaders []string) Handler {
 			}
 
 			if len(missing) != 0 {
-				status := restutils.NewBadRequest("Missing headers", missing)
-				restutils.ResponseJSON(status, w, http.StatusBadRequest)
+				status := newBadRequest("Missing headers", missing)
+				ResponseJSON(status, w, http.StatusBadRequest)
 				return
 			}
 
@@ -53,8 +52,8 @@ func WithRequiredHeaderValues(requiredHeaderValues map[string]string) Handler {
 			}
 
 			if len(invalid) != 0 {
-				status := restutils.NewBadRequest("Invalid headers", invalid)
-				restutils.ResponseJSON(status, w, http.StatusBadRequest)
+				status := newBadRequest("Invalid headers", invalid)
+				ResponseJSON(status, w, http.StatusBadRequest)
 				return
 			}
 

@@ -12,8 +12,6 @@ import (
 
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 
-	"github.com/pharmatics/rest-utils"
-
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -24,7 +22,7 @@ var errConnKilled = fmt.Errorf("killing connection/stream because serving reques
 func WithTimeoutForNonLongRunningRequest(requestTimeout time.Duration) Handler {
 
 	fn := func(h httprouter.Handle) httprouter.Handle {
-		timeoutFunc := func(req *http.Request) (*http.Request, <-chan time.Time, func(), *restutils.Status) {
+		timeoutFunc := func(req *http.Request) (*http.Request, <-chan time.Time, func(), *Status) {
 			// TODO unify this with apiserver.MaxInFlightLimit
 			ctx := req.Context()
 
@@ -35,14 +33,14 @@ func WithTimeoutForNonLongRunningRequest(requestTimeout time.Duration) Handler {
 				cancel()
 				requestTerminationsTotal.WithLabelValues(req.Method, req.URL.Path, codeToString(http.StatusGatewayTimeout)).Inc()
 			}
-			return req, time.After(requestTimeout), postTimeoutFn, restutils.NewTimeoutError(fmt.Sprintf("request did not complete within %s", requestTimeout), 0)
+			return req, time.After(requestTimeout), postTimeoutFn, newTimeoutError(fmt.Sprintf("request did not complete within %s", requestTimeout), 0)
 		}
 		return withTimeout(h, timeoutFunc)
 	}
 	return fn
 }
 
-type timeoutFunc = func(*http.Request) (req *http.Request, timeout <-chan time.Time, postTimeoutFunc func(), err *restutils.Status)
+type timeoutFunc = func(*http.Request) (req *http.Request, timeout <-chan time.Time, postTimeoutFunc func(), err *Status)
 
 // withTimeout returns an http.Handler that runs h with a timeout
 // determined by timeoutFunc. The new http.Handler calls h.ServeHTTP to handle
@@ -115,7 +113,7 @@ func withTimeout(h httprouter.Handle, timeoutFunc timeoutFunc) httprouter.Handle
 // extend ResponseWriter interface
 type timeoutWriter interface {
 	http.ResponseWriter
-	timeout(*restutils.Status)
+	timeout(*Status)
 }
 
 func newTimeoutWriter(w http.ResponseWriter) timeoutWriter {
@@ -199,7 +197,7 @@ func (tw *baseTimeoutWriter) WriteHeader(code int) {
 	tw.w.WriteHeader(code)
 }
 
-func (tw *baseTimeoutWriter) timeout(err *restutils.Status) {
+func (tw *baseTimeoutWriter) timeout(err *Status) {
 	tw.mu.Lock()
 	defer tw.mu.Unlock()
 
@@ -209,7 +207,7 @@ func (tw *baseTimeoutWriter) timeout(err *restutils.Status) {
 	// We can safely timeout the HTTP request by sending by a timeout
 	// handler
 	if !tw.wroteHeader && !tw.hijacked {
-		restutils.ResponseJSON(err, tw.w, http.StatusGatewayTimeout)
+		ResponseJSON(err, tw.w, http.StatusGatewayTimeout)
 	} else {
 		// The timeout writer has been used by the inner handler. There is
 		// no way to timeout the HTTP request at the point. We have to shutdown

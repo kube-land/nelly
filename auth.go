@@ -1,22 +1,19 @@
 package nelly
 
 import (
-	"fmt"
-	"net/http"
-
-	"github.com/auth0/go-jwt-middleware"
-
 	"encoding/json"
 	"errors"
-
-	"github.com/dgrijalva/jwt-go"
+	"net/http"
 
 	"github.com/julienschmidt/httprouter"
+
+	"github.com/auth0/go-jwt-middleware"
+	"github.com/dgrijalva/jwt-go"
 )
 
-///////////////////////////////////////////////////////////////
 var errorHandler = func(w http.ResponseWriter, r *http.Request, err string) {
-	fmt.Fprintf(w, "%s", err)
+	status := newUnauthorizedRequest(err)
+	ResponseJSON(status, w, 401)
 }
 
 // Jwks is a set of keys which contains the public keys used to verify JWT issued
