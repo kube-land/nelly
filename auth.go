@@ -9,11 +9,13 @@ import (
 
 	"github.com/auth0/go-jwt-middleware"
 	"github.com/dgrijalva/jwt-go"
+
+	"github.com/pharmatics/rest-util"
 )
 
 var errorHandler = func(w http.ResponseWriter, r *http.Request, err string) {
-	status := newUnauthorizedRequest(err)
-	ResponseJSON(status, w, 401)
+	status := restutil.NewFailureStatus(err, restutil.StatusReasonUnauthorized, nil)
+	restutil.ResponseJSON(status, w, status.Code)
 }
 
 // Jwks is a set of keys which contains the public keys used to verify JWT issued

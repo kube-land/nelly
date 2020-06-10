@@ -1,22 +1,15 @@
-package nelly
+package restutil
 
 import (
 	"fmt"
 	"net/http"
 )
 
-// StatusType determins if the operation status type is "Success" or "Failure"
-type StatusType string
-
 const (
-	// StatusSuccess is "Success" status
-	StatusSuccess StatusType = "Success"
-	// StatusFailure is "Failure" status
-	StatusFailure StatusType = "Failure"
+	StatusSuccess = "Success"
+	StatusFailure = "Failure"
 )
 
-// StatusReason is a machine-readable description of why this
-// operation is in the "Failure" status
 type StatusReason string
 
 const (
@@ -165,12 +158,11 @@ const (
 	StatusReasonServiceUnavailable StatusReason = "ServiceUnavailable"
 )
 
-// Status is a return value for calls that don't return other objects.
 type Status struct {
 	// Status of the operation.
 	// One of: "Success" or "Failure".
 	// +optional
-	Status StatusType `json:"status,omitempty"`
+	Status string `json:"status,omitempty"`
 	// A human-readable description of the status of this operation.
 	// +optional
 	Message string `json:"message,omitempty"`
@@ -191,31 +183,61 @@ type Status struct {
 	Code int32 `json:"code,omitempty"`
 }
 
-// ResponseBadRequest creates an error that indicates that the request is invalid and can not be processed.
-func newBadRequest(message string, details interface{}) *Status {
+type RetryDetails struct {
+	RetryAfterSeconds int32
+}
+
+func NewSuccessed(message string) *Status {
+	return &Status{
+		Status:  StatusSuccess,
+		Code:    http.StatusOK,
+		Message: message,
+	}
+}
+
+// NewTimeoutError returns an error indicating that a timeout occurred before the request
+// could be completed.  Clients may retry, but the operation may still complete.
+func NewTimeoutError(message string, retryAfterSeconds int) *Status {
+	return &Status{
+		Status:  StatusFailure,
+		Code:    http.StatusGatewayTimeout,
+		Reason:  StatusReasonTimeout,
+		Message: fmt.Sprintf("Timeout: %s", message),
+		Details: RetryDetails{
+			RetryAfterSeconds: int32(retryAfterSeconds),
+		},
+	}
+}
+
+// NewInvalid returns an error indicating the item is invalid and cannot be processed.
+func NewInvalid(message string, details interface{}) *Status {
+	return &Status{
+		Status:  StatusFailure,
+		Code:    http.StatusUnprocessableEntity,
+		Reason:  StatusReasonInvalid,
+		Details: details,
+		Message: message,
+	}
+}
+
+// NewServiceUnavailable creates an error that indicates that the requested service is unavailable.
+func NewServiceUnavailable(message string, details interface{}) *Status {
+	return &Status{
+		Status:  StatusFailure,
+		Code:    http.StatusServiceUnavailable,
+		Reason:  StatusReasonServiceUnavailable,
+		Message: message,
+		Details: details,
+	}
+}
+
+// NewBadRequest creates an error that indicates that the request is invalid and can not be processed.
+func NewBadRequest(message string, details interface{}) *Status {
 	return &Status{
 		Status:  StatusFailure,
 		Code:    http.StatusBadRequest,
 		Reason:  StatusReasonBadRequest,
 		Message: message,
 		Details: details,
-	}
-}
-
-func newTimeoutError(message string, retryAfterSeconds int) *Status {
-	return &Status{
-		Status:  StatusFailure,
-		Code:    http.StatusGatewayTimeout,
-		Reason:  StatusReasonTimeout,
-		Message: fmt.Sprintf("Timeout: %s", message),
-	}
-}
-
-func newUnauthorizedRequest(message string) *Status {
-	return &Status{
-		Status:  StatusFailure,
-		Code:    http.StatusUnauthorized,
-		Reason:  StatusReasonUnauthorized,
-		Message: message,
 	}
 }
