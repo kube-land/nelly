@@ -19,7 +19,7 @@ github.com/golang/protobuf/ptypes/timestamp
 github.com/julienschmidt/httprouter
 # github.com/matttproud/golang_protobuf_extensions v1.0.1
 github.com/matttproud/golang_protobuf_extensions/pbutil
-# github.com/pharmatics/rest-util v1.0.0
+# github.com/pharmatics/rest-util v1.1.0
 ## explicit
 github.com/pharmatics/rest-util
 # github.com/prometheus/client_golang v1.6.0

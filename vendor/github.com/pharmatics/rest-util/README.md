@@ -1,6 +1,9 @@
 # rest-util
+[![GoDoc](https://godoc.org/github.com/golang/gddo?status.svg)](http://godoc.org/github.com/pharmatics/rest-util)
+[![Go Report Card](https://goreportcard.com/badge/github.com/pharmatics/rest-util)](https://goreportcard.com/report/github.com/pharmatics/rest-util)
+[![Coverage](http://gocover.io/_badge/github.com/pharmatics/rest-util)](http://gocover.io/github.com/pharmatics/rest-util)
 
-The rest-util is a small library for handling RESTful JSON response and status messages. It could be used by any RESTful API easily to convert any structure to JSON response message.
+The rest-util is a small library for handling RESTful JSON response and status messages. It could be used by any RESTful API easily to convert any structure to JSON response message and write to `ResponseWriter`.
 
 ## Usage
 
@@ -8,7 +11,6 @@ The rest-util is a small library for handling RESTful JSON response and status m
 package main
 
 import (
-    "fmt"
     "net/http"
     "github.com/pharmatics/rest-util"
 )
@@ -19,17 +21,25 @@ type User struct {
 }
 
 func main() {
-    http.HandleFunc("/", HelloServer)
+    http.HandleFunc("/success", UserSuccess)
+    http.HandleFunc("/failure", UserFailure)
     http.ListenAndServe(":8080", nil)
 }
 
-func HelloServer(w http.ResponseWriter, r *http.Request) {
-
+func UserSuccess(w http.ResponseWriter, r *http.Request) {
     user := User{
         Name: "Alice",
-        Role: 23,
+        Age: 23,
     }
-
     restutil.ResponseJSON(user, w, 200)
+}
+
+func UserFailure(w http.ResponseWriter, r *http.Request) {
+    user := User{
+        Name: "Alice",
+        Age: 23,
+    }
+    status := restutil.NewFailureStatus("Can't process user", restutil.StatusReasonInvalid, user)
+    restutil.ResponseJSON(status, w, status.Code)
 }
 ```

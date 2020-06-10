@@ -5,6 +5,7 @@ import (
 	"net/http"
 )
 
+// ResponseJSON convert struct to JSON and writes JSON response with the specified status code.
 func ResponseJSON(response interface{}, w http.ResponseWriter, statusCode int) {
 	if response != nil {
 		jsonResponse, err := json.Marshal(response)

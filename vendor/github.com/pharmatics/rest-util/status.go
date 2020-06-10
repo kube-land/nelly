@@ -1,15 +1,17 @@
 package restutil
 
-import (
-	"fmt"
-	"net/http"
-)
+// StatusType determines if the operation status type is "Success" or "Failure"
+type StatusType string
 
 const (
-	StatusSuccess = "Success"
-	StatusFailure = "Failure"
+	// StatusSuccess is "Success" status
+	StatusSuccess StatusType = "Success"
+	// StatusFailure is "Failure" status
+	StatusFailure StatusType = "Failure"
 )
 
+// StatusReason is a machine-readable description of why this
+// operation is in the "Failure" status
 type StatusReason string
 
 const (
@@ -28,28 +30,15 @@ const (
 	// StatusReasonForbidden means the server can be reached and understood the request, but refuses
 	// to take any further action.  It is the result of the server being configured to deny access for some reason
 	// to the requested resource by the client.
-	// Details (optional):
-	//   "kind" string - the kind attribute of the forbidden resource
-	//                   on some operations may differ from the requested
-	//                   resource.
-	//   "id"   string - the identifier of the forbidden resource
 	// Status code 403
 	StatusReasonForbidden StatusReason = "Forbidden"
 
 	// StatusReasonNotFound means one or more resources required for this operation
 	// could not be found.
-	// Details (optional):
-	//   "kind" string - the kind attribute of the missing resource
-	//                   on some operations may differ from the requested
-	//                   resource.
-	//   "id"   string - the identifier of the missing resource
 	// Status code 404
 	StatusReasonNotFound StatusReason = "NotFound"
 
 	// StatusReasonAlreadyExists means the resource you are creating already exists.
-	// Details (optional):
-	//   "kind" string - the kind attribute of the conflicting resource
-	//   "id"   string - the identifier of the conflicting resource
 	// Status code 409
 	StatusReasonAlreadyExists StatusReason = "AlreadyExists"
 
@@ -69,12 +58,6 @@ const (
 	// completed due to invalid data provided as part of the request. The client may
 	// need to alter the request. When set, the client may use the StatusDetails
 	// message field as a summary of the issues encountered.
-	// Details (optional):
-	//   "kind" string - the kind attribute of the invalid resource
-	//   "id"   string - the identifier of the invalid resource
-	//   "causes"      - one or more StatusCause entries indicating the data in the
-	//                   provided resource that was invalid.  The code, message, and
-	//                   field attributes will be set.
 	// Status code 422
 	StatusReasonInvalid StatusReason = "Invalid"
 
@@ -83,29 +66,17 @@ const (
 	// This is may be due to temporary server load or a transient communication issue with
 	// another server. Status code 500 is used because the HTTP spec provides no suitable
 	// server-requested client retry and the 5xx class represents actionable errors.
-	// Details (optional):
-	//   "kind" string - the kind attribute of the resource being acted on.
-	//   "id"   string - the operation that is being attempted.
-	//   "retryAfterSeconds" int32 - the number of seconds before the operation should be retried
 	// Status code 500
 	StatusReasonServerTimeout StatusReason = "ServerTimeout"
 
 	// StatusReasonTimeout means that the request could not be completed within the given time.
-	// Clients can get this response only when they specified a timeout param in the request,
-	// or if the server cannot complete the operation within a reasonable amount of time.
-	// The request might succeed with an increased value of timeout param. The client *should*
-	// wait at least the number of seconds specified by the retryAfterSeconds field.
-	// Details (optional):
-	//   "retryAfterSeconds" int32 - the number of seconds before the operation should be retried
+	// The server cannot complete the operation within a reasonable amount of time.
 	// Status code 504
 	StatusReasonTimeout StatusReason = "Timeout"
 
 	// StatusReasonTooManyRequests means the server experienced too many requests within a
 	// given window and that the client must wait to perform the action again. A client may
-	// always retry the request that led to this error, although the client should wait at least
-	// the number of seconds specified by the retryAfterSeconds field.
-	// Details (optional):
-	//   "retryAfterSeconds" int32 - the number of seconds before the operation should be retried
+	// always retry the request that led to this error.
 	// Status code 429
 	StatusReasonTooManyRequests StatusReason = "TooManyRequests"
 
@@ -140,8 +111,6 @@ const (
 
 	// StatusReasonInternalError indicates that an internal error occurred, it is unexpected
 	// and the outcome of the call is unknown.
-	// Details (optional):
-	//   "causes" - The original error
 	// Status code 500
 	StatusReasonInternalError StatusReason = "InternalError"
 
@@ -158,86 +127,80 @@ const (
 	StatusReasonServiceUnavailable StatusReason = "ServiceUnavailable"
 )
 
+// Status is a return value for calls that don't return other objects.
 type Status struct {
 	// Status of the operation.
 	// One of: "Success" or "Failure".
-	// +optional
-	Status string `json:"status,omitempty"`
+	Status StatusType `json:"status,omitempty"`
 	// A human-readable description of the status of this operation.
-	// +optional
 	Message string `json:"message,omitempty"`
 	// A machine-readable description of why this operation is in the
 	// "Failure" status. If this value is empty there
 	// is no information available. A Reason clarifies an HTTP status
 	// code but does not override it.
-	// +optional
 	Reason StatusReason `json:"reason,omitempty"`
 	// Extended data associated with the reason.  Each reason may define its
 	// own extended details. This field is optional and the data returned
 	// is not guaranteed to conform to any schema except that defined by
 	// the reason type.
-	// +optional
 	Details interface{} `json:"details,omitempty"`
 	// Suggested HTTP return code for this status, 0 if not set.
-	// +optional
-	Code int32 `json:"code,omitempty"`
+	Code int `json:"code,omitempty"`
 }
 
-type RetryDetails struct {
-	RetryAfterSeconds int32
-}
+// NewFailureStatus creates new failure status with message, StatusReason and details.
+func NewFailureStatus(message string, reason StatusReason, details interface{}) *Status {
 
-func NewSuccessed(message string) *Status {
-	return &Status{
-		Status:  StatusSuccess,
-		Code:    http.StatusOK,
+	var code int
+
+	switch reason {
+	case StatusReasonUnknown:
+		code = 500
+	case StatusReasonUnauthorized:
+		code = 401
+	case StatusReasonForbidden:
+		code = 403
+	case StatusReasonNotFound:
+		code = 404
+	case StatusReasonAlreadyExists:
+		code = 409
+	case StatusReasonConflict:
+		code = 409
+	case StatusReasonGone:
+		code = 410
+	case StatusReasonInvalid:
+		code = 422
+	case StatusReasonServerTimeout:
+		code = 500
+	case StatusReasonTimeout:
+		code = 504
+	case StatusReasonTooManyRequests:
+		code = 429
+	case StatusReasonBadRequest:
+		code = 400
+	case StatusReasonMethodNotAllowed:
+		code = 405
+	case StatusReasonNotAcceptable:
+		code = 406
+	case StatusReasonRequestEntityTooLarge:
+		code = 413
+	case StatusReasonUnsupportedMediaType:
+		code = 415
+	case StatusReasonInternalError:
+		code = 500
+	case StatusReasonExpired:
+		code = 410
+	case StatusReasonServiceUnavailable:
+		code = 503
+	}
+
+	status := Status{
+		Status:  StatusFailure,
 		Message: message,
-	}
-}
-
-// NewTimeoutError returns an error indicating that a timeout occurred before the request
-// could be completed.  Clients may retry, but the operation may still complete.
-func NewTimeoutError(message string, retryAfterSeconds int) *Status {
-	return &Status{
-		Status:  StatusFailure,
-		Code:    http.StatusGatewayTimeout,
-		Reason:  StatusReasonTimeout,
-		Message: fmt.Sprintf("Timeout: %s", message),
-		Details: RetryDetails{
-			RetryAfterSeconds: int32(retryAfterSeconds),
-		},
-	}
-}
-
-// NewInvalid returns an error indicating the item is invalid and cannot be processed.
-func NewInvalid(message string, details interface{}) *Status {
-	return &Status{
-		Status:  StatusFailure,
-		Code:    http.StatusUnprocessableEntity,
-		Reason:  StatusReasonInvalid,
+		Reason:  reason,
 		Details: details,
-		Message: message,
+		Code:    code,
 	}
-}
 
-// NewServiceUnavailable creates an error that indicates that the requested service is unavailable.
-func NewServiceUnavailable(message string, details interface{}) *Status {
-	return &Status{
-		Status:  StatusFailure,
-		Code:    http.StatusServiceUnavailable,
-		Reason:  StatusReasonServiceUnavailable,
-		Message: message,
-		Details: details,
-	}
-}
-
-// NewBadRequest creates an error that indicates that the request is invalid and can not be processed.
-func NewBadRequest(message string, details interface{}) *Status {
-	return &Status{
-		Status:  StatusFailure,
-		Code:    http.StatusBadRequest,
-		Reason:  StatusReasonBadRequest,
-		Message: message,
-		Details: details,
-	}
+	return &status
 }
