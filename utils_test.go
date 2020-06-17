@@ -1,9 +1,6 @@
 package nelly
 
 import (
-	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 )
 

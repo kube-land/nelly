@@ -11,7 +11,7 @@ import (
 	"go.opentelemetry.io/otel/plugin/httptrace"
 )
 
-// WithTrace handler will trace the requests using OpenTelemetry. It needs
+// WithTrace handler will trace the requests using OpenTelemetry.
 func WithTrace() Handler {
 
 	fn := func(h httprouter.Handle) httprouter.Handle {

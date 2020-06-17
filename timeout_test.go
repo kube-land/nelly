@@ -13,6 +13,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/runtime"
 
 	"github.com/julienschmidt/httprouter"
+
+	"github.com/pharmatics/rest-util"
 )
 
 type recorder struct {
@@ -57,18 +59,18 @@ func TestTimeout(t *testing.T) {
 	gotPanic := make(chan interface{}, 1)
 	timeout := make(chan time.Time, 1)
 	resp := "test response"
-	timeoutErr := newTimeoutError("request did not complete", 0)
+	timeoutErr := restutil.NewFailureStatus("request did not complete", restutil.StatusReasonTimeout, nil)
 	record := &recorder{}
 
 	handler := newHandler(sendResponse, doPanic, writeErrors)
 
 	router := httprouter.New()
 	router.GET("/", withPanicRecovery(
-		withTimeout(handler, func(req *http.Request) (*http.Request, <-chan time.Time, func(), *Status) {
+		withTimeout(handler, func(req *http.Request) (*http.Request, <-chan time.Time, func(), *restutil.Status) {
 			return req, timeout, record.Record, timeoutErr
 		}), func(w http.ResponseWriter, req *http.Request, err interface{}) {
 			gotPanic <- err
-			http.Error(w, "This request caused apiserver to panic. Look in the logs for details.", http.StatusInternalServerError)
+			http.Error(w, "This request caused panic. Look in the logs for details.", http.StatusInternalServerError)
 		}),
 	)
 
