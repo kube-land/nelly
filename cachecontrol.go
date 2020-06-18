@@ -6,7 +6,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// WithCacheControl handler sets the Cache-Control header to "no-cache, private" because all servers are protected by authn/authz.
+// WithCacheControl handler sets the Cache-Control header to "no-cache, private" because all servers are supposed to be protected by authn/authz.
 // see https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/http-caching#defining_optimal_cache-control_policy
 func WithCacheControl() Handler {
 

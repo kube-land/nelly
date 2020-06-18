@@ -19,9 +19,9 @@ import (
 
 var errConnKilled = fmt.Errorf("killing connection/stream because serving request timed out and response had been started")
 
-// WithTimeoutForNonLongRunningRequest handler times out non-long-running
+// WithTimeoutForNonLongRunningRequests handler times out non-long-running
 // requests after the duration given by requestTimeout.
-func WithTimeoutForNonLongRunningRequest(requestTimeout time.Duration) Handler {
+func WithTimeoutForNonLongRunningRequests(requestTimeout time.Duration) Handler {
 
 	fn := func(h httprouter.Handle) httprouter.Handle {
 		timeoutFunc := func(req *http.Request) (*http.Request, <-chan time.Time, func(), *restutil.Status) {

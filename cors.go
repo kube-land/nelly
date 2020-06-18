@@ -21,7 +21,8 @@ type CORSSpec struct {
 }
 
 // WithCORS handler is a simple CORS implementation that wraps an httprouter.Handle.
-// If allowedOriginPatterns is empty, no CORS support is installed.
+// Pass nil for allowedMethods and allowedHeaders to use the defaults. If allowedOriginPatterns
+// is empty, no CORS support is installed.
 func WithCORS(spec CORSSpec) Handler {
 
 	fn := func(h httprouter.Handle) httprouter.Handle {
@@ -55,6 +56,18 @@ func withCORS(handler httprouter.Handle, allowedOriginPatterns []string, allowed
 			}
 			if allowed {
 				w.Header().Set("Access-Control-Allow-Origin", origin)
+
+				// Set defaults for methods and headers if nothing was passed
+				if allowedMethods == nil {
+					allowedMethods = []string{"POST", "GET", "OPTIONS", "PUT", "DELETE", "PATCH"}
+				}
+				if allowedHeaders == nil {
+					allowedHeaders = []string{"Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "X-Requested-With", "If-Modified-Since"}
+				}
+				if exposedHeaders == nil {
+					exposedHeaders = []string{"Date"}
+				}
+
 				w.Header().Set("Access-Control-Allow-Methods", strings.Join(allowedMethods, ", "))
 				w.Header().Set("Access-Control-Allow-Headers", strings.Join(allowedHeaders, ", "))
 				w.Header().Set("Access-Control-Expose-Headers", strings.Join(exposedHeaders, ", "))

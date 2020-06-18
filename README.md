@@ -7,3 +7,8 @@
 A high performance and modern HTTP Middleware for Golang (inspired by Kubernetes API server)
 
 ![nelly](logo/nelly.png)
+
+# Todo:
+
+- [ ] Improve metrics handler
+- [ ] Improve timeout for long running requests

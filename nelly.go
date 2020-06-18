@@ -7,22 +7,22 @@ import (
 // Classic returns a new Chain with the default middleware handlers already
 // in the chain.
 //
-// WithTrace - OpenTelemetry tracing handler
-//
-// WithInstrument - Prometheus Metrics Handler
-//
-// WithCacheControl - Cache-Control header handler
-//
 // WithPanicRecovery - Panic Recovery Handler
 //
 // WithLogging - Logging Handler
+//
+// WithInstrument - Prometheus Metrics Handler
+//
+// WithTrace - OpenTelemetry tracing handler
+//
+// WithCacheControl - Cache-Control header handler
 func Classic() Chain {
 	return NewChain(
-		WithTrace(),
-		WithInstrument(),
-		WithCacheControl(),
 		WithPanicRecovery(),
-		WithLogging())
+		WithLogging(),
+		WithInstrument(),
+		WithTrace(),
+		WithCacheControl())
 }
 
 // A Handler is a generic function that takes httprouter.Handle
