@@ -13,7 +13,7 @@ import (
 //
 // WithInstrument - Prometheus Metrics Handler
 //
-// WithTrace - OpenTelemetry tracing handler
+// WithTrace - OpenTelemetry tracing handler (disabled in favour of othttp)
 //
 // WithCacheControl - Cache-Control header handler
 func Classic() Chain {
@@ -21,7 +21,7 @@ func Classic() Chain {
 		WithPanicRecovery(),
 		WithLogging(),
 		WithInstrument(),
-		WithTrace(),
+		//WithTrace(), // will be disabled in favour of othttp
 		WithCacheControl())
 }
 

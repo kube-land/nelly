@@ -11,8 +11,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// CORSSpec is the configuration that will be used by WithCORS
-type CORSSpec struct {
+// CORSOpts is the configuration that will be used by WithCORS
+type CORSOpts struct {
 	AllowedOriginPatterns []string
 	AllowedMethods        []string
 	AllowedHeaders        []string
@@ -23,15 +23,15 @@ type CORSSpec struct {
 // WithCORS handler is a simple CORS implementation that wraps an httprouter.Handle.
 // Pass nil for allowedMethods and allowedHeaders to use the defaults. If allowedOriginPatterns
 // is empty, no CORS support is installed.
-func WithCORS(spec CORSSpec) Handler {
+func WithCORS(opts CORSOpts) Handler {
 
 	fn := func(h httprouter.Handle) httprouter.Handle {
 		return withCORS(h,
-			spec.AllowedOriginPatterns,
-			spec.AllowedMethods,
-			spec.AllowedHeaders,
-			spec.ExposedHeaders,
-			strconv.FormatBool(spec.AllowCredentials))
+			opts.AllowedOriginPatterns,
+			opts.AllowedMethods,
+			opts.AllowedHeaders,
+			opts.ExposedHeaders,
+			strconv.FormatBool(opts.AllowCredentials))
 	}
 
 	return fn

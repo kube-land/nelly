@@ -12,13 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package trace
+package global
 
-type NoopProvider struct{}
+import (
+	"go.opentelemetry.io/otel/api/global/internal"
+	"go.opentelemetry.io/otel/api/propagation"
+)
 
-var _ Provider = NoopProvider{}
+// Propagators returns the registered global propagators instance.  If
+// none is registered then an instance of propagators.NoopPropagators
+// is returned.
+func Propagators() propagation.Propagators {
+	return internal.Propagators()
+}
 
-// Tracer returns noop implementation of Tracer.
-func (p NoopProvider) Tracer(_ string, _ ...TracerOption) Tracer {
-	return NoopTracer{}
+// SetPropagators registers `p` as the global propagators instance.
+func SetPropagators(p propagation.Propagators) {
+	internal.SetPropagators(p)
 }

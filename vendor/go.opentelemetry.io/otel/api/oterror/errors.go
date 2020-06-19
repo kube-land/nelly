@@ -12,13 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package trace
+package oterror
 
-type NoopProvider struct{}
+import "errors"
 
-var _ Provider = NoopProvider{}
-
-// Tracer returns noop implementation of Tracer.
-func (p NoopProvider) Tracer(_ string, _ ...TracerOption) Tracer {
-	return NoopTracer{}
-}
+var (
+	// ErrSDKReturnedNilImpl is returned when a new `MeterImpl` returns nil.
+	ErrSDKReturnedNilImpl = errors.New("SDK returned a nil implementation")
+)
