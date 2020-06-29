@@ -44,16 +44,11 @@ type Handle func(http.ResponseWriter, *http.Request, Params)
 To write a new middleware handler that could be chained to other middleware handlers as in the following example:
 
 ```go
-func someHandler() Handler {
-
-	fn := func(h httprouter.Handle) httprouter.Handle {
-		return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-			// middleware handler implementation goes here
-			h(w, r, p)
-		}
+func someHandler(h httprouter.Handle) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+		// middleware handler implementation goes here
+		h(w, r, p)
 	}
-
-	return fn
 }
 ```
 
@@ -66,15 +61,12 @@ chain := nelly.NewChain(someHandler, otherHanlder, ...)
 To wrap your handler `appHandler` (`httprouter.Handle`) with the created chain:
 
 ```go
-func appHandler() httprouter.Handle {
-	fn := func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-		// httprouter.Handle implementation goes here
-		return
-	}
-	return fn
+func appHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// httprouter.Handle implementation goes here
+	return
 }
 
-chainedHandler := chain.Then(appHandler())
+chainedHandler := chain.Then(appHandler)
 ```
 
 Then you can use the created `chainedHandler` with `httprouter`
@@ -91,14 +83,14 @@ log.Fatal(http.ListenAndServe(":8080", router))
 The requests will pass `someHandler` first, then `otherHanlder` till the end of the set of the passed handlers to `NewChain` in the same order, and finally to `appHandler` which is equivalent to:
 
 ```go
-someHandler(otherHanlder(...(appHandler()))
+someHandler(otherHanlder(...(appHandler))
 ```
 
 For more flexible usage of the created `chain`, you can use `Append(handler)` or `Extend(chain)`:
 
 * `Append` - will return a new chain, leaving the original one untouched, and adds the specified middleware handlers as the last ones in the request flow of the original chain.
 
-* `Extend` - will return a new chain, leaving the original one untouched, and the specified chain as the last one in the request flow of the original chain.
+* `Extend` - will return a new chain, leaving the original one untouched, and adds the specified chain as the last one in the request flow of the original chain.
 
 ```go
 // Create new chian
@@ -114,7 +106,7 @@ chain_2 := nelly.NewChain(handler_E, handler_F)
 newChain := chain1.Extend(chain2)
 
 // wrap the appHandler with the created chain
-chainedHandler := chain2.Then(appHandler())
+chainedHandler := chain2.Then(appHandler)
 ```
 
 In previous example using `chainedHandler` in `httprouter` will pass the requests as follow
@@ -134,7 +126,7 @@ To use classic version:
 classicChain := nelly.Classic()
 
 // extend the classic chain with some default chain (WithCORS)
-chian := classicChain.Append(WithCORS...)
+chian := classicChain.Append(WithCORS(opts), ...)
 ```
 
 Using any of the default handlers which implements middleware handler is recommended in the following order:
