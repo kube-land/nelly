@@ -4,34 +4,27 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// Classic returns a new Chain with the default middleware handlers already
-// in the chain.
+// Classic returns a new Chain with some default middleware handlers already
+// in the chain with the following order:
 //
-// WithPanicRecovery - Panic Recovery Handler
-//
-// WithLogging - Logging Handler
-//
-// WithInstrument - Prometheus Metrics Handler
-//
-// WithTrace - OpenTelemetry tracing handler (disabled in favour of othttp)
-//
-// WithCacheControl - Cache-Control header handler
+// WithPanicRecovery (Panic Recovery Handler),
+// WithLogging (Logging Handler),
+// WithInstrument (Prometheus Metrics Handler),
+// WithCacheControl (Cache-Control header handler)
 func Classic() Chain {
 	return NewChain(
 		WithPanicRecovery(),
 		WithLogging(),
 		WithInstrument(),
-		//WithTrace(), // will be disabled in favour of othttp
 		WithCacheControl())
 }
 
-// A Handler is a generic function that takes httprouter.Handle
-// and retrun httprouter.Handle. It is differnet from the common
-// signature of middleware handler that use http.Handler
-// because it uses julienschmidt/httprouter instead.
+// A Handler (middleware handler) is a generic function that takes httprouter.Handle
+// and retrun httprouter.Handle. It is differnet from the common signature of middleware
+// handler that use http.Handler because it uses julienschmidt/httprouter instead.
 type Handler func(httprouter.Handle) httprouter.Handle
 
-// Chain is a list of httprouter.Handle handlers.
+// Chain is a list of a middleware handlers.
 // Chain is effectively immutable:
 // once created, it will always hold
 // the same set of handlers in the same order.
@@ -60,7 +53,7 @@ func (s Chain) Then(h httprouter.Handle) httprouter.Handle {
 	return h
 }
 
-// Append extends a chain, adding the specified handler
+// Append extends a chain, adding the specified handlers
 // as the last ones in the request flow.
 //
 // Append returns a new chain, leaving the original one untouched.

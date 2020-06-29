@@ -1,6 +1,7 @@
 package restutil
 
-// StatusType determines if the operation status type is "Success" or "Failure"
+// StatusType determines if the operation status type
+// is "Success" or "Failure".
 type StatusType string
 
 const (
@@ -11,7 +12,7 @@ const (
 )
 
 // StatusReason is a machine-readable description of why this
-// operation is in the "Failure" status
+// operation is in the "Failure" status.
 type StatusReason string
 
 const (
@@ -127,7 +128,8 @@ const (
 	StatusReasonServiceUnavailable StatusReason = "ServiceUnavailable"
 )
 
-// Status is a return value for calls that don't return other objects.
+// Status is a return value for calls that don't return
+// other objects.
 type Status struct {
 	// Status of the operation.
 	// One of: "Success" or "Failure".
@@ -139,7 +141,7 @@ type Status struct {
 	// is no information available. A Reason clarifies an HTTP status
 	// code but does not override it.
 	Reason StatusReason `json:"reason,omitempty"`
-	// Extended data associated with the reason.  Each reason may define its
+	// Extended data associated with the reason. Each reason may define its
 	// own extended details. This field is optional and the data returned
 	// is not guaranteed to conform to any schema except that defined by
 	// the reason type.
@@ -148,8 +150,15 @@ type Status struct {
 	Code int `json:"code,omitempty"`
 }
 
-// NewFailureStatus creates new failure status with message, StatusReason and details.
-func NewFailureStatus(message string, reason StatusReason, details interface{}) *Status {
+// StatusError is a Status of type error
+type StatusError Status
+
+func (status *StatusError) Error() string {
+	return status.Message
+}
+
+// Error creates new failure status with message and StatusReason.
+func Error(message string, reason StatusReason) *StatusError {
 
 	var code int
 
@@ -194,13 +203,19 @@ func NewFailureStatus(message string, reason StatusReason, details interface{}) 
 		code = 503
 	}
 
-	status := Status{
+	status := StatusError{
 		Status:  StatusFailure,
 		Message: message,
 		Reason:  reason,
-		Details: details,
 		Code:    code,
 	}
 
 	return &status
+}
+
+// ErrorWithDetails creates new failure status with message, StatusReason and details
+func ErrorWithDetails(message string, reason StatusReason, details interface{}) *StatusError {
+	errStatus := Error(message, reason)
+	errStatus.Details = details
+	return errStatus
 }

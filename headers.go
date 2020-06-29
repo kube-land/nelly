@@ -23,8 +23,8 @@ func WithRequiredHeaders(requiredHeaders []string) Handler {
 			}
 
 			if len(missing) != 0 {
-				status := restutil.NewFailureStatus("Missing headers", restutil.StatusReasonBadRequest, missing)
-				restutil.ResponseJSON(status, w, status.Code)
+				statusErr := restutil.ErrorWithDetails("Missing headers", restutil.StatusReasonBadRequest, missing)
+				restutil.ResponseJSON(statusErr, w, statusErr.Code)
 				return
 			}
 
@@ -53,8 +53,8 @@ func WithRequiredHeaderValues(requiredHeaderValues map[string]string) Handler {
 			}
 
 			if len(invalid) != 0 {
-				status := restutil.NewFailureStatus("Invalid headers", restutil.StatusReasonBadRequest, invalid)
-				restutil.ResponseJSON(status, w, status.Code)
+				statusErr := restutil.ErrorWithDetails("Invalid headers", restutil.StatusReasonBadRequest, invalid)
+				restutil.ResponseJSON(statusErr, w, statusErr.Code)
 				return
 			}
 

@@ -24,7 +24,7 @@ var errConnKilled = fmt.Errorf("killing connection/stream because serving reques
 func WithTimeoutForNonLongRunningRequests(requestTimeout time.Duration) Handler {
 
 	fn := func(h httprouter.Handle) httprouter.Handle {
-		timeoutFunc := func(req *http.Request) (*http.Request, <-chan time.Time, func(), *restutil.Status) {
+		timeoutFunc := func(req *http.Request) (*http.Request, <-chan time.Time, func(), *restutil.StatusError) {
 			// TODO unify this with apiserver.MaxInFlightLimit
 			ctx := req.Context()
 
@@ -35,14 +35,14 @@ func WithTimeoutForNonLongRunningRequests(requestTimeout time.Duration) Handler 
 				cancel()
 				requestTerminationsTotal.WithLabelValues(req.Method, req.URL.Path, codeToString(http.StatusGatewayTimeout)).Inc()
 			}
-			return req, time.After(requestTimeout), postTimeoutFn, restutil.NewFailureStatus(fmt.Sprintf("request did not complete within %s", requestTimeout), restutil.StatusReasonTimeout, nil)
+			return req, time.After(requestTimeout), postTimeoutFn, restutil.Error(fmt.Sprintf("request did not complete within %s", requestTimeout), restutil.StatusReasonTimeout)
 		}
 		return withTimeout(h, timeoutFunc)
 	}
 	return fn
 }
 
-type timeoutFunc = func(*http.Request) (req *http.Request, timeout <-chan time.Time, postTimeoutFunc func(), err *restutil.Status)
+type timeoutFunc = func(*http.Request) (req *http.Request, timeout <-chan time.Time, postTimeoutFunc func(), err *restutil.StatusError)
 
 // withTimeout returns an http.Handler that runs h with a timeout
 // determined by timeoutFunc. The new http.Handler calls h.ServeHTTP to handle
@@ -115,7 +115,7 @@ func withTimeout(h httprouter.Handle, timeoutFunc timeoutFunc) httprouter.Handle
 // extend ResponseWriter interface
 type timeoutWriter interface {
 	http.ResponseWriter
-	timeout(*restutil.Status)
+	timeout(*restutil.StatusError)
 }
 
 func newTimeoutWriter(w http.ResponseWriter) timeoutWriter {
@@ -199,7 +199,7 @@ func (tw *baseTimeoutWriter) WriteHeader(code int) {
 	tw.w.WriteHeader(code)
 }
 
-func (tw *baseTimeoutWriter) timeout(err *restutil.Status) {
+func (tw *baseTimeoutWriter) timeout(err *restutil.StatusError) {
 	tw.mu.Lock()
 	defer tw.mu.Unlock()
 

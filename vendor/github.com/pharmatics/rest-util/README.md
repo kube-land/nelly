@@ -39,7 +39,7 @@ func UserFailure(w http.ResponseWriter, r *http.Request) {
         Name: "Alice",
         Age: 23,
     }
-    status := restutil.NewFailureStatus("Can't process user", restutil.StatusReasonInvalid, user)
+    status := restutil.ErrorWithDetails("Can't process user", restutil.StatusReasonInvalid, user)
     restutil.ResponseJSON(status, w, status.Code)
 }
 ```

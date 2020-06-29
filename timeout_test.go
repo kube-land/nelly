@@ -59,14 +59,14 @@ func TestTimeout(t *testing.T) {
 	gotPanic := make(chan interface{}, 1)
 	timeout := make(chan time.Time, 1)
 	resp := "test response"
-	timeoutErr := restutil.NewFailureStatus("request did not complete", restutil.StatusReasonTimeout, nil)
+	timeoutErr := restutil.Error("request did not complete", restutil.StatusReasonTimeout)
 	record := &recorder{}
 
 	handler := newHandler(sendResponse, doPanic, writeErrors)
 
 	router := httprouter.New()
 	router.GET("/", withPanicRecovery(
-		withTimeout(handler, func(req *http.Request) (*http.Request, <-chan time.Time, func(), *restutil.Status) {
+		withTimeout(handler, func(req *http.Request) (*http.Request, <-chan time.Time, func(), *restutil.StatusError) {
 			return req, timeout, record.Record, timeoutErr
 		}), func(w http.ResponseWriter, req *http.Request, err interface{}) {
 			gotPanic <- err

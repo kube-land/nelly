@@ -14,8 +14,8 @@ import (
 )
 
 var errorHandler = func(w http.ResponseWriter, r *http.Request, err string) {
-	status := restutil.NewFailureStatus(err, restutil.StatusReasonUnauthorized, nil)
-	restutil.ResponseJSON(status, w, status.Code)
+	statusErr := restutil.Error(err, restutil.StatusReasonUnauthorized)
+	restutil.ResponseJSON(statusErr, w, statusErr.Code)
 }
 
 // Jwks is a set of keys which contains the public keys used to verify JWT issued
@@ -64,7 +64,7 @@ func getPemCert(token *jwt.Token, jwksURL string) (string, error) {
 	return cert, nil
 }
 
-// WithAuthSigningMethodHS256 handler authinticates requests with HS256 algorithm
+// WithAuthSigningMethodHS256 handler authinticates requests with JWT token using HS256 algorithm
 func WithAuthSigningMethodHS256(secret string, audience string, issuer string) Handler {
 
 	jwtMiddleware := jwtmiddleware.New(jwtmiddleware.Options{
@@ -93,7 +93,7 @@ func WithAuthSigningMethodHS256(secret string, audience string, issuer string) H
 	return withAuth(jwtMiddleware)
 }
 
-// WithAuthSigningMethodRS256 handler authinticates requests with RS256 algorithm
+// WithAuthSigningMethodRS256 handler authinticates requests  with JWT token using RS256 algorithm
 func WithAuthSigningMethodRS256(jwksEndpoint string, audience string, issuer string) Handler {
 
 	jwtMiddleware := jwtmiddleware.New(jwtmiddleware.Options{
