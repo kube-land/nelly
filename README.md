@@ -126,7 +126,7 @@ To use classic version:
 classicChain := nelly.Classic()
 
 // extend the classic chain with some default chain (WithCORS)
-chian := classicChain.Append(WithCORS(opts), ...)
+chian := classicChain.Append(WithCORS(opts), someHandler, ...)
 ```
 
 Using any of the default handlers which implements middleware handler is recommended in the following order:
