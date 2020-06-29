@@ -143,7 +143,7 @@ Using any of the default handlers which implements middleware handler is recomme
 
 ## Tracing (OpenTelemetry)
 
-Nelly had a support for tracing using [OpenTelemetry](https://github.com/open-telemetry/opentelemetry-go) which has been deprecated inf the favour of `othttp` (OpenTelemetry HTTP Handler) which only support the traditional `net/http` handler. Unfortunately, it is not possible to use `othttp` directly with nelly middleware, but it could be used with `julienschmidt/httprouter` as follow:
+Nelly had a support for tracing using [OpenTelemetry](https://github.com/open-telemetry/opentelemetry-go) which has been deprecated in the favour of `othttp` (OpenTelemetry HTTP Handler) which only support the traditional `net/http` handler. Unfortunately, it is not possible to use `othttp` directly with nelly middleware, but it could be used with `julienschmidt/httprouter` as follow:
 
 ```go
 // import "go.opentelemetry.io/otel/instrumentation/othttp"
