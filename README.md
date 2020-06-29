@@ -98,7 +98,7 @@ For more flexible usage of the created `chain`, you can use `Append(handler)` or
 
 * `Append` - will return a new chain, leaving the original one untouched, and adds the specified middleware handlers as the last ones in the request flow of the original chain.
 
-* `Extend` - will return a new chain, leaving the original one untouched, and the specified chain as the last one in the request flow of the original chain.
+* `Extend` - will return a new chain, leaving the original one untouched, and adds the specified chain as the last one in the request flow of the original chain.
 
 ```go
 // Create new chian
