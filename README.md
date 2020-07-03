@@ -156,5 +156,5 @@ The router will be wrapped with `othttp` handler which support the traditional `
 
 # Todo:
 
-- [ ] Improve metrics handler
+- [ ] Improve metrics handler and more metrics
 - [ ] Improve timeout for long running requests
