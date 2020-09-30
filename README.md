@@ -155,7 +155,6 @@ log.Fatal(http.ListenAndServe(":8080", otWrap))
 The router will be wrapped with `othttp` handler which support the traditional `net/http` Handler.
 
 # Todo:
-
 - [ ] Improve metrics handler and more metrics
 - [ ] Improve timeout for long running requests
 
